@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   PayPalProvider,
   PayPalOneTimePaymentButton,
@@ -9,19 +9,8 @@ import {
 import { createOrder, captureOrder } from "@/app/actions";
 
 export default function PayPalCheckout() {
-  const [orderComplete, setOrderComplete] = useState(false);
+  const router = useRouter();
   const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
-
-  if (orderComplete) {
-    return (
-      <div
-        role="status"
-        className="rounded-lg border border-green-500 bg-green-50 px-5 py-4 font-medium text-green-700"
-      >
-        Payment successful. Your order has been confirmed.
-      </div>
-    );
-  }
 
   if (!clientId) {
     return (
@@ -50,8 +39,12 @@ export default function PayPalCheckout() {
           return { orderId: id };
         }}
         onApprove={async ({ orderId }: OnApproveDataOneTimePayments) => {
-          await captureOrder(orderId);
-          setOrderComplete(true);
+          try {
+            const result = (await captureOrder(orderId)) as { status?: string };
+            router.push(result.status === "COMPLETED" ? "/success" : "/failed");
+          } catch {
+            router.push("/failed");
+          }
         }}
         presentationMode="auto"
       />
