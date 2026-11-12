@@ -46,6 +46,8 @@ export default function PayPalCheckout() {
             router.push("/failed");
           }
         }}
+        onCancel={() => router.push("/checkout")}
+        onError={() => router.push("/failed")}
         presentationMode="auto"
       />
     </PayPalProvider>
